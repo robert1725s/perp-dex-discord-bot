@@ -1,0 +1,63 @@
+# Perp DEX Discord Bot Configuration
+
+# スケジュール設定
+schedule:
+  # 共通ペア更新（1日1回、初回起動時）
+  common_pairs_update: "daily"  # daily, startup
+
+  # 通知実行時刻（毎時45分）
+  notification_time: "45 * * * *"  # cronフォーマット（毎時45分）
+
+# 取引所設定
+exchanges:
+  - name: "Extended"
+    type: "extended"  # factory.pyのregistry key
+    enabled: true
+    api_base_url: "https://api.starknet.extended.exchange/api/v1"
+    config:
+      # Extended固有の設定
+      rate_limit: 1000  # requests per minute
+
+  - name: "Lighter"
+    type: "lighter"
+    enabled: true
+    api_base_url: "https://mainnet.zklighter.elliot.ai/api/v1"
+    config:
+      # Lighter固有の設定
+      rate_limit: 500
+
+  # 新しい取引所を追加する例
+  # - name: "NewExchange"
+  #   type: "newexchange"
+  #   enabled: false
+  #   api_base_url: "https://api.newexchange.com/v1"
+  #   config:
+  #     custom_param: "value"
+
+# 分析パラメータ
+analysis:
+  # FR差分析
+  fr_divergence:
+    min_volume_usd: 1000000  # 最小取引高 1M USD
+    top_n: 5                  # 上位5件
+
+  # OI比率分析
+  oi_ratio:
+    min_volume_usd: 5000000  # 最小取引高 10M USD
+    max_volume_usd: 50000000 # 最大取引高 100M USD（広げた）
+    max_oi_ratio: 30         # 最大OI比率（これ以上は除外）
+    top_n: 3                   # 上位3件
+    base_exchange: "Extended"  # 基準とする取引所
+
+# Discord設定
+discord:
+  webhook_url: "${DISCORD_WEBHOOK_URL}"  # 環境変数から取得
+
+# ストレージ設定
+storage:
+  cache_file: "data/common_pairs.json"
+
+# ログ設定
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR
+  file: "logs/bot.log"

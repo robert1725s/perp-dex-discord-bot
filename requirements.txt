@@ -1,0 +1,12 @@
+# HTTP Client
+aiohttp>=3.9.0
+
+# Configuration
+PyYAML>=6.0.1
+python-dotenv>=1.0.0
+
+# Scheduling
+APScheduler>=3.10.4
+
+# Data validation (optional but recommended)
+pydantic>=2.5.0
