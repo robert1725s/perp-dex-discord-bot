@@ -36,8 +36,9 @@
 ### 通知機能
 
 - **Discord Webhook通知**
-  - リッチなEmbed形式のメッセージ
+  - リッチなEmbed形式のメッセージ（日本語）
   - テーブル形式の見やすい表示
+  - Funding Rate差分とOI比率の分析結果
   - エラー通知機能
 
 ## サポートされている取引所
@@ -53,6 +54,8 @@ perp-dex-discord-bot/
 ├── main.py                  # メインエントリポイント
 ├── scheduler.py             # スケジューラー管理
 ├── requirements.txt         # Python依存関係
+├── start_bot.bat            # Windows用起動スクリプト（本番）
+├── start_bot_test.bat       # Windows用起動スクリプト（テスト）
 │
 ├── core/                    # コアロジック
 │   ├── analyzer.py          # データ分析ロジック
@@ -67,7 +70,7 @@ perp-dex-discord-bot/
 │
 ├── notifiers/              # 通知実装
 │   ├── discord.py          # Discord通知
-│   └── formatter.py        # メッセージフォーマット
+│   └── formatter.py        # メッセージフォーマット（日本語）
 │
 └── storage/                # データ永続化
     └── cache.py            # 共通ペアキャッシュ
@@ -106,6 +109,46 @@ DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/YOUR_WEBHOOK_URL
 `config.yaml`を編集して、分析パラメータや通知スケジュールをカスタマイズします。
 
 ## 使用方法
+
+### プラットフォーム別実行方法
+
+#### macOS / Linux の場合
+
+```bash
+# テストモード（1回だけ実行）
+python3 main.py --once
+
+# 本番モード（スケジュール実行）
+python3 main.py
+```
+
+#### Windows の場合
+
+Windows環境では**UTF-8エンコーディング問題**を回避するため、専用のバッチファイルを使用します：
+
+**方法1: バッチファイル（推奨）**
+```cmd
+# テストモード - start_bot_test.bat をダブルクリック
+# または
+start_bot_test.bat
+
+# 本番モード - start_bot.bat をダブルクリック
+# または
+start_bot.bat
+```
+
+**方法2: コマンドライン**
+```cmd
+# PowerShell
+$env:PYTHONIOENCODING="utf-8"
+python main.py --once
+
+# コマンドプロンプト
+set PYTHONIOENCODING=utf-8
+python main.py --once
+```
+
+> **注**: Windowsでは文字エンコーディングの問題（cp932エラー）を回避するため、バッチファイルの使用を推奨します。
 
 ### コマンドラインオプション
 
@@ -324,6 +367,42 @@ exchanges:
    ```
 
 3. タイムゾーンを確認（スケジューラーはUTCを使用）
+
+#### 7. Windows文字エンコーディングエラー（cp932エラー）
+
+**エラー**: `UnicodeDecodeError: 'cp932' codec can't decode byte...`
+
+**原因**: Windowsのデフォルトエンコーディングが日本語（cp932）のため、UTF-8で書かれた日本語コメントや通知メッセージでエラーが発生
+
+**解決方法**:
+
+**方法1: バッチファイルを使用（推奨）**
+```cmd
+# テストモード
+start_bot_test.bat
+
+# 本番モード
+start_bot.bat
+```
+
+**方法2: 環境変数を設定**
+```cmd
+# PowerShell
+$env:PYTHONIOENCODING="utf-8"
+python main.py --once
+
+# コマンドプロンプト
+set PYTHONIOENCODING=utf-8
+python main.py --once
+```
+
+**方法3: システムのロケール設定を変更**
+1. 「コントロールパネル」→「地域」
+2. 「管理」タブ→「システムロケールの変更」
+3. 「ベータ: ワールドワイド言語サポートでUnicode UTF-8を使用」にチェック
+4. 再起動
+
+> **注**: バッチファイルには自動的にUTF-8設定が含まれているため、最も簡単な方法です。
 
 ### ログレベルの変更
 

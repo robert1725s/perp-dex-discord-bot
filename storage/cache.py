@@ -48,8 +48,8 @@ class CacheManager:
                 cache_data['metadata'] = metadata
 
             # Write to file
-            with open(self.cache_file, 'w') as f:
-                json.dump(cache_data, f, indent=2)
+            with open(self.cache_file, 'w', encoding='utf-8') as f:
+                json.dump(cache_data, f, indent=2, ensure_ascii=False)
 
             logger.info(f"Cache saved successfully to {self.cache_file}")
             return True
@@ -78,7 +78,7 @@ class CacheManager:
                 return None
 
             # Read from file
-            with open(self.cache_file, 'r') as f:
+            with open(self.cache_file, 'r', encoding='utf-8') as f:
                 cache_data = json.load(f)
 
             logger.info(f"Cache loaded successfully from {self.cache_file}")
