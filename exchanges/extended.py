@@ -5,6 +5,7 @@ import logging
 from typing import List, Dict, Optional
 import aiohttp
 from .base import BaseExchange
+from core.types import MarketData
 
 
 logger = logging.getLogger(__name__)
@@ -26,21 +27,12 @@ class ExtendedExchange(BaseExchange):
         self.max_retries = 3
         self.retry_delay = 1  # Initial retry delay in seconds
 
-    async def get_markets(self) -> List[Dict]:
+    async def get_markets(self) -> List[MarketData]:
         """
         Fetch all market information from Extended Exchange.
 
         Returns:
-            List[Dict]: List of market data dictionaries
-            [
-                {
-                    'symbol': 'BTC-USD',
-                    'volume_24h': 1500000.0,
-                    'funding_rate': 0.0001,
-                    'open_interest': 50000000.0
-                },
-                ...
-            ]
+            List[MarketData]: List of market data objects
         """
         url = f"{self.api_base_url}/info/markets"
 
@@ -86,7 +78,7 @@ class ExtendedExchange(BaseExchange):
 
         return []
 
-    def _parse_market(self, market: Dict) -> Optional[Dict]:
+    def _parse_market(self, market: Dict) -> Optional[MarketData]:
         """
         Parse a single market from Extended API response.
 
@@ -94,7 +86,7 @@ class ExtendedExchange(BaseExchange):
             market: Raw market data from API
 
         Returns:
-            Optional[Dict]: Parsed market data or None if invalid
+            Optional[MarketData]: Parsed market data or None if invalid
         """
         try:
             name = market.get('name')
@@ -129,13 +121,14 @@ class ExtendedExchange(BaseExchange):
             # Normalize symbol
             normalized_symbol = self.normalize_symbol(name)
 
-            return {
-                'symbol': normalized_symbol,
-                'volume_24h': volume_24h,
-                'funding_rate': fr,
-                'open_interest': oi_usd,
-                'last_price': price
-            }
+            return MarketData(
+                symbol=normalized_symbol,
+                exchange=self.name,
+                volume_24h=volume_24h,
+                funding_rate=fr,
+                open_interest=oi_usd,
+                last_price=price
+            )
 
         except (ValueError, TypeError) as e:
             logger.debug(f"Error parsing market data: {e}")
@@ -191,12 +184,13 @@ async def _test_extended():
         if markets:
             print("\nFirst 3 markets:")
             for market in markets[:3]:
-                print(f"  Symbol: {market['symbol']}")
-                print(f"    Volume 24h: ${market['volume_24h']:,.2f}")
-                print(f"    Funding Rate: {market['funding_rate']:.4%}")
-                print(f"    Open Interest: ${market['open_interest']:,.2f}")
-                if 'last_price' in market:
-                    print(f"    Last Price: ${market['last_price']:,.2f}")
+                print(f"  Symbol: {market.symbol}")
+                print(f"    Exchange: {market.exchange}")
+                print(f"    Volume 24h: ${market.volume_24h:,.2f}")
+                print(f"    Funding Rate: {market.funding_rate:.4%}")
+                print(f"    Open Interest: ${market.open_interest:,.2f}")
+                if market.last_price:
+                    print(f"    Last Price: ${market.last_price:,.2f}")
                 print()
     except Exception as e:
         print(f"  Error: {e}")

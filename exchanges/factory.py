@@ -4,6 +4,7 @@ from typing import Dict, Type
 from .base import BaseExchange
 from .extended import ExtendedExchange
 from .lighter import LighterExchange
+from .grvt import GRVTExchange
 
 
 class ExchangeFactory:
@@ -12,6 +13,7 @@ class ExchangeFactory:
     _registry: Dict[str, Type[BaseExchange]] = {
         'extended': ExtendedExchange,
         'lighter': LighterExchange,
+        'grvt': GRVTExchange,
         # New exchanges can be added here
     }
 

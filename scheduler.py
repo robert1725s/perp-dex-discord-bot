@@ -220,19 +220,11 @@ class BotScheduler:
                     logger.info(f"Fetching markets from {exchange.name}...")
                     markets_raw = await exchange.get_markets()
 
-                    # Convert to MarketData objects
-                    markets = []
-                    for market_dict in markets_raw:
-                        # Filter to common pairs only
-                        if market_dict['symbol'] in common_pairs:
-                            markets.append(MarketData(
-                                symbol=market_dict['symbol'],
-                                exchange=exchange.name,
-                                volume_24h=market_dict['volume_24h'],
-                                funding_rate=market_dict['funding_rate'],
-                                open_interest=market_dict['open_interest'],
-                                last_price=market_dict.get('last_price')
-                            ))
+                    # Filter to common pairs only (markets_raw already contains MarketData objects)
+                    markets = [
+                        market for market in markets_raw
+                        if market.symbol in common_pairs
+                    ]
 
                     all_markets_by_exchange[exchange.name] = markets
                     logger.info(f"Fetched {len(markets)} common pair markets from {exchange.name}")
@@ -286,9 +278,15 @@ class BotScheduler:
 
             # Send Discord notification
             logger.info("Sending Discord notification...")
+
+            # Get exchange names and base exchange for notification
+            exchange_names = [ex.name for ex in self.exchanges]
+
             success = await self.notifier.send_market_alert(
                 fr_divergence,
-                low_oi_ratio
+                low_oi_ratio,
+                exchange_names=exchange_names,
+                base_exchange=base_exchange
             )
 
             if success:

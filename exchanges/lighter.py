@@ -5,6 +5,7 @@ import logging
 from typing import List, Dict, Optional
 import aiohttp
 from .base import BaseExchange
+from core.types import MarketData
 
 
 logger = logging.getLogger(__name__)
@@ -26,21 +27,12 @@ class LighterExchange(BaseExchange):
         self.max_retries = 3
         self.retry_delay = 1  # Initial retry delay in seconds
 
-    async def get_markets(self) -> List[Dict]:
+    async def get_markets(self) -> List[MarketData]:
         """
         Fetch all market information from Lighter Exchange.
 
         Returns:
-            List[Dict]: List of market data dictionaries
-            [
-                {
-                    'symbol': 'BTC-USD',
-                    'volume_24h': 1500000.0,
-                    'funding_rate': 0.0001,
-                    'open_interest': 50000000.0
-                },
-                ...
-            ]
+            List[MarketData]: List of market data objects
         """
         # Fetch order book details (includes volume, OI, price)
         order_book_details = await self._fetch_order_book_details()
@@ -148,7 +140,7 @@ class LighterExchange(BaseExchange):
 
         return {}
 
-    def _parse_market(self, details: Dict, funding_rates: Dict[int, float]) -> Optional[Dict]:
+    def _parse_market(self, details: Dict, funding_rates: Dict[int, float]) -> Optional[MarketData]:
         """
         Parse a single market from Lighter API response.
 
@@ -157,7 +149,7 @@ class LighterExchange(BaseExchange):
             funding_rates: Mapping of market_id to funding rate
 
         Returns:
-            Optional[Dict]: Parsed market data or None if invalid
+            Optional[MarketData]: Parsed market data or None if invalid
         """
         try:
             symbol = details.get('symbol')
@@ -199,13 +191,14 @@ class LighterExchange(BaseExchange):
             # Normalize symbol
             normalized_symbol = self.normalize_symbol(symbol)
 
-            return {
-                'symbol': normalized_symbol,
-                'volume_24h': volume_24h,
-                'funding_rate': funding_rate,
-                'open_interest': oi_usd,
-                'last_price': price
-            }
+            return MarketData(
+                symbol=normalized_symbol,
+                exchange=self.name,
+                volume_24h=volume_24h,
+                funding_rate=funding_rate,
+                open_interest=oi_usd,
+                last_price=price
+            )
 
         except (ValueError, TypeError) as e:
             logger.debug(f"Error parsing market data: {e}")
@@ -271,12 +264,13 @@ async def _test_lighter():
         if markets:
             print("\nFirst 5 markets:")
             for market in markets[:5]:
-                print(f"  Symbol: {market['symbol']}")
-                print(f"    Volume 24h: ${market['volume_24h']:,.2f}")
-                print(f"    Funding Rate: {market['funding_rate']:.4%}")
-                print(f"    Open Interest: ${market['open_interest']:,.2f}")
-                if 'last_price' in market:
-                    print(f"    Last Price: ${market['last_price']:,.2f}")
+                print(f"  Symbol: {market.symbol}")
+                print(f"    Exchange: {market.exchange}")
+                print(f"    Volume 24h: ${market.volume_24h:,.2f}")
+                print(f"    Funding Rate: {market.funding_rate:.4%}")
+                print(f"    Open Interest: ${market.open_interest:,.2f}")
+                if market.last_price:
+                    print(f"    Last Price: ${market.last_price:,.2f}")
                 print()
     except Exception as e:
         print(f"  Error: {e}")

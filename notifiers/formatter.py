@@ -14,7 +14,9 @@ class MessageFormatter:
     @staticmethod
     def format_market_alert(
         fr_divergence: List[Dict],
-        low_oi_ratio: List[Dict]
+        low_oi_ratio: List[Dict],
+        exchange_names: List[str] = None,
+        base_exchange: str = None
     ) -> Dict:
         """
         Format market alert as Discord embed.
@@ -22,6 +24,8 @@ class MessageFormatter:
         Args:
             fr_divergence: FR divergence ranking
             low_oi_ratio: Low OI ratio ranking
+            exchange_names: List of enabled exchange names (for description)
+            base_exchange: Base exchange name for OI analysis (optional)
 
         Returns:
             Dict: Discord embed structure
@@ -29,10 +33,18 @@ class MessageFormatter:
         # Current timestamp
         timestamp = datetime.utcnow().isoformat()
 
+        # Build description dynamically
+        if exchange_names and len(exchange_names) >= 2:
+            description = f"{exchange_names[0]}と{exchange_names[1]}の最新マーケット分析"
+            if len(exchange_names) > 2:
+                description = "、".join(exchange_names) + "の最新マーケット分析"
+        else:
+            description = "最新マーケット分析"
+
         # Build embed
         embed = {
             "title": "📊 Perp DEX マーケットアラート",
-            "description": "ExtendedとLighterの最新マーケット分析",
+            "description": description,
             "color": 0x3498db,  # Blue
             "timestamp": timestamp,
             "fields": [],
@@ -54,11 +66,15 @@ class MessageFormatter:
 
         # Add low OI ratio section
         if low_oi_ratio:
-            oi_field = MessageFormatter._format_low_oi_ratio_field(low_oi_ratio)
+            oi_field = MessageFormatter._format_low_oi_ratio_field(low_oi_ratio, base_exchange)
             embed["fields"].append(oi_field)
         else:
+            # Include base exchange in the "not found" message too
+            oi_title = "📉 低OI比率の機会"
+            if base_exchange:
+                oi_title += f"（{base_exchange}基準）"
             embed["fields"].append({
-                "name": "📉 低OI比率の機会",
+                "name": oi_title,
                 "value": "*低OI比率の機会は見つかりませんでした*",
                 "inline": False
             })
@@ -105,12 +121,13 @@ class MessageFormatter:
         }
 
     @staticmethod
-    def _format_low_oi_ratio_field(low_oi_ratio: List[Dict]) -> Dict:
+    def _format_low_oi_ratio_field(low_oi_ratio: List[Dict], base_exchange: str = None) -> Dict:
         """
         Format low OI ratio as embed field.
 
         Args:
             low_oi_ratio: Low OI ratio ranking
+            base_exchange: Base exchange name for OI analysis (optional)
 
         Returns:
             Dict: Discord embed field
@@ -135,8 +152,13 @@ class MessageFormatter:
 
         lines.append("```")
 
+        # Build title with base exchange if provided
+        title = "📉 低OI比率の機会（高取引量・低OI）"
+        if base_exchange:
+            title = f"📉 低OI比率の機会（{base_exchange}基準）"
+
         return {
-            "name": "📉 低OI比率の機会（高取引量・低OI）",
+            "name": title,
             "value": "\n".join(lines),
             "inline": False
         }

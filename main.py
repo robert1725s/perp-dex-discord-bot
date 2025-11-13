@@ -82,6 +82,16 @@ async def run_once(config_path: str):
     except Exception as e:
         logger.error(f"Error in --once mode: {e}", exc_info=True)
         sys.exit(1)
+    finally:
+        # Clean up HTTP sessions
+        if 'bot' in locals() and bot.exchanges:
+            logger.info("Cleaning up exchange connections...")
+            for exchange in bot.exchanges:
+                if hasattr(exchange, 'close'):
+                    try:
+                        await exchange.close()
+                    except Exception as e:
+                        logger.warning(f"Error closing {exchange.name}: {e}")
 
 
 async def run_scheduled(config_path: str):

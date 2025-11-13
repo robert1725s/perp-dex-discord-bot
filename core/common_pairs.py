@@ -102,7 +102,8 @@ class CommonPairsManager:
                 continue
 
             # Extract symbols
-            symbols = [market['symbol'] for market in markets if 'symbol' in market]
+            # markets is a list of MarketData objects, not dicts
+            symbols = [market.symbol for market in markets if hasattr(market, 'symbol')]
             symbol_lists.append(symbols)
 
             logger.debug(f"{exchange_name}: {len(symbols)} markets")

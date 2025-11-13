@@ -20,11 +20,19 @@ exchanges:
 
   - name: "Lighter"
     type: "lighter"
-    enabled: true
+    enabled: false
     api_base_url: "https://mainnet.zklighter.elliot.ai/api/v1"
     config:
       # Lighter固有の設定
       rate_limit: 500
+
+  - name: "GRVT"
+    type: "grvt"
+    enabled: true
+    api_base_url: "https://market-data.grvt.io"
+    config:
+      # GRVT固有の設定
+      rate_limit: 500  # requests per minute
 
   # 新しい取引所を追加する例
   # - name: "NewExchange"
@@ -47,7 +55,7 @@ analysis:
     max_volume_usd: 50000000 # 最大取引高 100M USD（広げた）
     max_oi_ratio: 30         # 最大OI比率（これ以上は除外）
     top_n: 3                   # 上位3件
-    base_exchange: "Extended"  # 基準とする取引所
+    base_exchange: "GRVT"  # 基準とする取引所
 
 # Discord設定
 discord:

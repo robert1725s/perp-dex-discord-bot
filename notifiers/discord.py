@@ -28,7 +28,9 @@ class DiscordNotifier:
     async def send_market_alert(
         self,
         fr_divergence: List[Dict],
-        low_oi_ratio: List[Dict]
+        low_oi_ratio: List[Dict],
+        exchange_names: List[str] = None,
+        base_exchange: str = None
     ) -> bool:
         """
         Send market alert to Discord.
@@ -36,12 +38,19 @@ class DiscordNotifier:
         Args:
             fr_divergence: FR divergence ranking
             low_oi_ratio: Low OI ratio ranking
+            exchange_names: List of enabled exchange names (for description)
+            base_exchange: Base exchange name for OI analysis (optional)
 
         Returns:
             bool: True if sent successfully, False otherwise
         """
         # Format message
-        embed = MessageFormatter.format_market_alert(fr_divergence, low_oi_ratio)
+        embed = MessageFormatter.format_market_alert(
+            fr_divergence,
+            low_oi_ratio,
+            exchange_names,
+            base_exchange
+        )
 
         # Send to Discord
         return await self._send_embed(embed)
